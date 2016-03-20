@@ -9,21 +9,21 @@ defmodule Zigzag do
       :ok
   """
   def each(list, limit, fun) do
-    each(list, limit, fun, 0)
+    each(list, limit, fun, make_ref(), 0)
   end
 
-  defp each([], _limit, _fun, 0), do: :ok
-  defp each([h|t], limit, fun, running) when running < limit do
+  defp each([], _limit, _fun, _ref, 0), do: :ok
+  defp each([h|t], limit, fun, ref, running) when running < limit do
     me = self
     spawn_link(fn ->
       fun.(h)
-      send me, :cont
+      send me, {ref, :cont}
     end)
-    each(t, limit, fun, running + 1)
+    each(t, limit, fun, ref, running + 1)
   end
-  defp each(list, limit, fun, running) when is_list(list) do
+  defp each(list, limit, fun, ref, running) when is_list(list) do
     receive do
-      :cont -> each(list, limit, fun, running - 1)
+      {^ref, :cont} -> each(list, limit, fun, ref, running - 1)
     end
   end
 
@@ -38,20 +38,20 @@ defmodule Zigzag do
       [2, 4, 6]
   """
   def unordered_map(list, limit, fun) do
-    unordered_map(list, limit, fun, 0, [])
+    unordered_map(list, limit, fun, make_ref(), 0, [])
   end
 
-  defp unordered_map([], _limit, _fun, 0, acc), do: acc
-  defp unordered_map([h|t], limit, fun, running, acc) when running < limit do
+  defp unordered_map([], _limit, _fun, _ref, 0, acc), do: acc
+  defp unordered_map([h|t], limit, fun, ref, running, acc) when running < limit do
     me = self
     spawn_link(fn ->
-      send me, {:cont, fun.(h)}
+      send me, {ref, :cont, fun.(h)}
     end)
-    unordered_map(t, limit, fun, running + 1, acc)
+    unordered_map(t, limit, fun, ref, running + 1, acc)
   end
-  defp unordered_map(list, limit, fun, running, acc) when is_list(list) do
+  defp unordered_map(list, limit, fun, ref, running, acc) when is_list(list) do
     receive do
-      {:cont, x} -> unordered_map(list, limit, fun, running - 1, [x | acc])
+      {^ref, :cont, x} -> unordered_map(list, limit, fun, ref, running - 1, [x | acc])
     end
   end
 
@@ -66,23 +66,23 @@ defmodule Zigzag do
       [2, 4, 6]
   """
   def map(list, limit, fun) do
-    map(list, limit, fun, 0, 0, [])
+    map(list, limit, fun, make_ref(), 0, 0, [])
   end
 
-  defp map([], _limit, _fun, 0, _started, acc) do
+  defp map([], _limit, _fun, _ref, 0, _started, acc) do
     :lists.keysort(1, acc) |> Enum.map(fn {_i, x} -> x end)
   end
-  defp map([h|t], limit, fun, running, started, acc) when running < limit do
+  defp map([h|t], limit, fun, ref, running, started, acc) when running < limit do
     me = self
     spawn_link(fn ->
-      send me, {:cont, started, fun.(h)}
+      send me, {ref, :cont, started, fun.(h)}
     end)
-    map(t, limit, fun, running + 1, started + 1, acc)
+    map(t, limit, fun, ref, running + 1, started + 1, acc)
   end
-  defp map(list, limit, fun, running, started, acc) when is_list(list) do
+  defp map(list, limit, fun, ref, running, started, acc) when is_list(list) do
     receive do
-      {:cont, i, x} ->
-        map(list, limit, fun, running - 1, started, [{i, x} | acc])
+      {^ref, :cont, i, x} ->
+        map(list, limit, fun, ref, running - 1, started, [{i, x} | acc])
     end
   end
 end
