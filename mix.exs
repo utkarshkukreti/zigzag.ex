@@ -7,7 +7,9 @@ defmodule Zigzag.Mixfile do
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     description: "Zigzag is a fast and flexible parallel processing library for Elixir.",
+     package: package]
   end
 
   # Configuration for the OTP application
@@ -28,5 +30,11 @@ defmodule Zigzag.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     []
+  end
+
+  defp package do
+    [maintainers: ["Utkarsh Kukreti"],
+     licenses: ["MIT"],
+     links: %{"GitHub": "https://github.com/utkarshkukreti/zigzag.ex"}]
   end
 end
