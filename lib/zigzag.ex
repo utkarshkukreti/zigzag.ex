@@ -26,4 +26,32 @@ defmodule Zigzag do
       :cont -> each(list, limit, fun, running - 1)
     end
   end
+
+  @doc """
+  Applies `fun` to each item of `list` in parallel, returning the return values
+  of `fun` in a list in an unspecified order, running at most `limit` processes
+  at any given time.
+
+  ## Examples
+
+      iex> Zigzag.unordered_map([1, 2, 3], 3, fn x -> x * 2 end) |> Enum.sort
+      [2, 4, 6]
+  """
+  def unordered_map(list, limit, fun) do
+    unordered_map(list, limit, fun, 0, [])
+  end
+
+  defp unordered_map([], _limit, _fun, 0, acc), do: acc
+  defp unordered_map([h|t], limit, fun, running, acc) when running < limit do
+    me = self
+    spawn_link(fn ->
+      send me, {:cont, fun.(h)}
+    end)
+    unordered_map(t, limit, fun, running + 1, acc)
+  end
+  defp unordered_map(list, limit, fun, running, acc) when is_list(list) do
+    receive do
+      {:cont, x} -> unordered_map(list, limit, fun, running - 1, [x | acc])
+    end
+  end
 end
