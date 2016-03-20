@@ -1,20 +1,17 @@
 # Zigzag
 
-**TODO: Add description**
+Zigzag is a fast and flexible parallel processing library for Elixir.
+
+It includes a parallel each, a parallel map, and a parallel unordered map
+implementation, all supporting a limit of maximum parallel processes to run
+concurrently at any given time.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+Add zigzag to your list of dependencies in `mix.exs`:
 
-  1. Add zigzag to your list of dependencies in `mix.exs`:
-
-        def deps do
-          [{:zigzag, "~> 0.0.1"}]
-        end
-
-  2. Ensure zigzag is started before your application:
-
-        def application do
-          [applications: [:zigzag]]
-        end
-
+```elixir
+def deps do
+  [{:zigzag, "~> 0.0.1"}]
+end
+```
